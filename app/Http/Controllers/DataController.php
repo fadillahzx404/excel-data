@@ -60,6 +60,7 @@ class DataController extends Controller
         DataDetails::create([
             'datas_id' => $item->id,
             'header_table' => json_encode($data['header_table']),
+
             'value_table' => json_encode($data['value_table']),
         ]);
 
@@ -68,9 +69,9 @@ class DataController extends Controller
 
     public function edit(Datas $datas, $id)
     {
-        $data = Datas::findOrFail($id);
+        $data = Datas::with('dataDetails')->findOrFail($id);
         $categories = Category::all();
-        $ket = DataDetails::where('datas_id', $id)->with('ColoringCol')->with('ColoringRow')->get();
+
 
         return view('datas.edit', ['data' => $data, 'categories' => $categories]);
     }
@@ -132,9 +133,18 @@ class DataController extends Controller
 
         return redirect()->route('datas.index')->with('Success', 'Data Berhasil Di Edit !!');
     }
-    public function destroy(Datas $datas, $id)
+    public function destroy($id)
     {
         $item = Datas::findOrFail($id);
+
+        $dataDetails = DataDetails::where('datas_id', $id)->get();
+        if ($dataDetails) {
+            foreach ($dataDetails as $detail) {
+                $detail->ColoringCol()->delete();
+                $detail->ColoringRow()->delete();
+                $detail->delete();
+            }
+        }
 
         $item->delete();
 

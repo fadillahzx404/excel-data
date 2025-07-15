@@ -7,12 +7,16 @@ import "handsontable/dist/handsontable.full.min.css";
 const container = document.querySelector("#example");
 
 const nameHeader = window.Laravel.nameHeader;
+
 const headerName = nameHeader.nama_header;
+const jumlahKolom = nameHeader.jumlah_baris;
+
+console.log(nameHeader);
 
 const count = headerName.length;
 const hot = new Handsontable(container, {
     startCols: count,
-    startRows: 10,
+    startRows: jumlahKolom,
     rowHeaders: true,
     colHeaders: headerName,
     manualColumnResize: true,

@@ -77,7 +77,7 @@
 @push('addon-script')
     <script type="text/javascript">
         window.Laravel = {
-            nameHeader: <?php echo json_encode($header); ?>
+            nameHeader: <?php echo json_encode($header); ?>,
         };
     </script>
 @endpush

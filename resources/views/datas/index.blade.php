@@ -35,6 +35,15 @@
                                         </label>
                                         <input type="number" name="jumlah_title"
                                             class="input input-bordered input-neutral w-full focus:outline-offset-0 focus:border-neutral" />
+
+                                    </div>
+                                    <div class="form-control">
+                                        <label class="label">
+                                            <span class="label-text">Jumlah Baris</span>
+                                        </label>
+
+                                        <input type="number" name="jumlah_baris"
+                                            class="input input-bordered input-neutral w-full focus:outline-offset-0 focus:border-neutral" />
                                     </div>
                                     <div class="modal-action">
                                         <label for="my_modal_6" class="btn btn-sm btn-warning">Cancel</label>

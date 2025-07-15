@@ -106,7 +106,6 @@
                     <div id="editedTable" class="hot handsontable htRowHeaders htColumnHeaders">
                     </div>
 
-
                     <input type="hidden" id="handsontable-data" name="handsontable_data">
 
                     <div class="flex flex-row gap-2 mt-10 justify-end">

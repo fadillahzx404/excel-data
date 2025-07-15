@@ -26,7 +26,7 @@
                         <div class="modal-box">
                             <form action="{{ route('datas.create') }}" method="GET">
                                 @csrf
-                                
+
                                 <h3 class="font-bold text-lg">Masukan nama setiap header atau title.</h3>
                                 <p>Jumlah Header / Title : {{ request()->get('jumlah_title') }}</p>
                                 @for ($i = 0; $i < request()->get('jumlah_title'); $i++)
@@ -38,6 +38,11 @@
                                             class="input input-bordered input-neutral w-full  focus:outline-offset-0 focus:border-neutral" />
                                     </div>
                                 @endfor
+
+                                <input type="hidden" name="jumlah_baris" value="{{ request()->get('jumlah_baris') }}"
+                                    required
+                                    class="input input-bordered input-neutral w-full  focus:outline-offset-0 focus:border-neutral" />
+
                                 <div class="modal-action">
                                     <a href="{{ route('datas.index') }}" class="btn btn-warning btn-sm">Cancel</a>
                                     <button type="submit" class="btn btn-success btn-sm">Next</button>

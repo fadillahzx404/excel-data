@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Datas;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -70,12 +71,16 @@ class CategoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category, $id)
+    public function destroy($id)
     {
+        $data = Datas::where('category_id', $id)->get();
+        $data->each(function ($item) {
+            $item->delete();
+        });
         $item = Category::findOrFail($id);
 
         $item->delete();
 
-        return redirect()->route('datas.index')->with('Success', 'Data telah dihapus !');
+        return redirect()->route('category.index')->with('Success', 'Category dan data telah dihapus !');
     }
 }

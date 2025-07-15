@@ -12,6 +12,8 @@ let coloringCol = window.ColoringColumn.coloringCol;
 let coloringRow = window.ColoringRowing.coloringRow;
 let Conditional;
 
+console.log(data);
+
 let colored = coloringCol.map((obj) => obj);
 let coloredRow = coloringRow.map((obj) => obj);
 
