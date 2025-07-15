@@ -54,7 +54,6 @@
                     <!-- Sidebar content here -->
                     <div class="logo rounded-full grid justify-center py-5">
                         <a href="{{ route('dashboard') }}" class="transition duration-300 hover:scale-90 ">
-
                             <x-card-logo />
                         </a>
 

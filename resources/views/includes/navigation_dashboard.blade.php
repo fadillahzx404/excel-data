@@ -9,8 +9,6 @@
 
             <div class="flex space-x-3 lg:px-8">
                 <div class="dropdown dropdown-end {{ Auth::user()->roles !== 'USER' ? 'hidden' : '' }}">
-
-
                 </div>
 
 
@@ -44,7 +42,8 @@
                                 Dashboard
                             </a>
                         </li>
-                        <li><a href="{{ route('profile.show') }}" class="hover:bg-gray-800 hover:text-white">
+                        <li><a href="{{ route('user-settings.edit', Auth::user()->id) }}"
+                                class="hover:bg-gray-800 hover:text-white">
                                 {{ __('Profile') }}
                             </a>
 

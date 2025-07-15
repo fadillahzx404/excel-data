@@ -74,18 +74,20 @@ class UsersController extends Controller
     {
         $data = $request->all();
 
-        if ($request->hasFile('profile_photo_path')) {
-            // Do something with the file
-            $data['profile_photo_path'] = $request->file('profile_photo_path')->store('/images/photo_profile', 'public');
-        }
+
 
         $item = User::findOrFail($id);
 
-        if ($data['password'] !== null) {
-            $data['password'] = Hash::make($input['password']);
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->input('password'));
         } else {
-            $data['password'] = $item->password;
+            unset($data['password']); // agar tidak tertimpa null
         }
+
+        if ($request->hasFile('profile_photo_path')) {
+            $data['profile_photo_path'] = $request->file('profile_photo_path')->store('/images/photo_profile', 'public');
+        }
+
 
         $item->update($data);
 
