@@ -30,6 +30,8 @@
                 <!-- Page content here -->
                 <div class="grid">
 
+
+
                     {{-- Navbar --}}
                     @include('includes.navigation_dashboard')
 
@@ -50,11 +52,10 @@
 
                 <div class="menu px-4 w-80 bg-white text-base-content min-h-screen" style="scroll-top: 0">
                     <!-- Sidebar content here -->
-                    <div class="logo rounded-full grid justify-center py-10">
+                    <div class="logo rounded-full grid justify-center py-5">
                         <a href="{{ route('dashboard') }}" class="transition duration-300 hover:scale-90 ">
 
-
-
+                            <x-card-logo />
                         </a>
 
                     </div>

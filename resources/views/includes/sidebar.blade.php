@@ -1,4 +1,5 @@
 <ul class="min-h-full space-y-2 ">
+
     <li><a href="{{ route('dashboard') }}"
             class=" hover:bg-gray-600 transition duration-300 hover:scale-90 mx-2 {{ request()->is('dashboard*') ? 'bg-gray-900 text-white  font-semibold' : 'text-gray-400' }}"><i
                 class="fa-solid fa-house"></i>Dashboard</a>

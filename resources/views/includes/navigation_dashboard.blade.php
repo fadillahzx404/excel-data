@@ -7,7 +7,6 @@
             </div>
 
 
-
             <div class="flex space-x-3 lg:px-8">
                 <div class="dropdown dropdown-end {{ Auth::user()->roles !== 'USER' ? 'hidden' : '' }}">
 
