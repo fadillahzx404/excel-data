@@ -9,7 +9,7 @@ class ColoringDataCol extends Model
 {
     use HasFactory;
     protected $table = 'coloring_data_col';
-    protected $fillable = ['data_details_id', 'user_id', 'color_col', 'header'];
+    protected $fillable = ['data_details_id', 'user_id', 'color_col', 'header', 'column'];
 
     public function userProfile()
     {

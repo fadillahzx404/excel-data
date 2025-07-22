@@ -1,55 +1,29 @@
-//EDIT DATA
-
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.full.min.css";
 
 const editor = document.querySelector("#editedTable");
-
 const header = window.Laravel.headerTable;
-let data = window.Datas.valueTable;
-let roles = window.Roles.roles;
-let coloringCol = window.ColoringColumn.coloringCol;
-let coloringRow = window.ColoringRowing.coloringRow;
-let Conditional;
+const data = window.Datas.valueTable;
+const roles = window.Roles.roles;
+const coloringCol = window.ColoringColumn.coloringCol;
 
-console.log(data);
+const isReadOnly = roles !== "ADMIN";
 
-let colored = coloringCol.map((obj) => obj);
-let coloredRow = coloringRow.map((obj) => obj);
+console.log("Header:", header);
+console.log("Data:", data);
+console.log("Roles:", roles);
+console.log("Coloring Column:", coloringCol);
 
-if (roles !== "ADMIN") {
-    Conditional = true;
-} else {
-    Conditional = false;
-}
-
-const hot = new Handsontable(editor, {
-    data: data,
-    rowHeaders: true,
-    colHeaders: header,
-    manualColumnResize: true,
-    collapsibleColumns: true,
-
-    autoWrapRow: true,
-    autoWrapCol: true,
-    readOnly: Conditional,
-    stretchH: "all",
-    licenseKey: "non-commercial-and-evaluation",
-    afterChange: function (source, changes) {
-        let jsonData;
-
-        jsonData = JSON.stringify({
-            data: this.getSourceData(),
-            colheaders: this.getColHeader(),
-        });
-
-        // update the hidden form field with the new data
-
-        $("#handsontable-data").val(jsonData);
-    },
+let suggestionHistory = new Set();
+data.forEach((row) => {
+    row.forEach((cell) => {
+        if (typeof cell === "string" && cell.trim() !== "") {
+            suggestionHistory.add(cell.trim());
+        }
+    });
 });
 
-function colorHeadRenderer(
+function colorCellRenderer(
     instance,
     td,
     row,
@@ -59,42 +33,86 @@ function colorHeadRenderer(
     cellProperties
 ) {
     Handsontable.renderers.TextRenderer.apply(this, arguments);
-    let coloredCol = colored.find((c) => c.header === header[col]);
-    if (coloredCol) {
-        td.style.backgroundColor = coloredCol.color_col;
-        td.style.fontWeight = "medium";
-        td.style.color = "black";
+    const colHeader = header[col];
+    const colorObj = coloringCol.find(
+        (c) => parseInt(c.column) === row + 1 && c.header === colHeader
+    );
+    if (colorObj) {
+        td.style.backgroundColor = colorObj.color_col;
+        td.style.fontWeight = "500";
+        td.style.color = "white";
     }
 }
 
-function colorRowRenderer(instance, td, row, col, prop, value, cellProperties) {
-    Handsontable.renderers.TextRenderer.apply(this, arguments);
-    const coloredRowObj = coloredRow.find((obj) => obj.index_row === row);
+const hot = new Handsontable(editor, {
+    data: data,
+    rowHeaders: true,
+    colHeaders: header,
+    manualColumnResize: true,
+    collapsibleColumns: true,
+    autoWrapRow: true,
+    autoWrapCol: true,
+    readOnly: isReadOnly,
+    stretchH: "all",
+    licenseKey: "non-commercial-and-evaluation",
+    search: {
+        queryMethod: Handsontable.plugins.Search.DEFAULT_QUERY_METHOD,
+        highlight: true,
+    },
+    columns: header.map(() => ({
+        type: "autocomplete",
+        strict: false,
+        filter: true,
+        allowInvalid: true,
+        source: function (query, process) {
+            const list = Array.from(suggestionHistory);
+            if (!query) return process(list);
+            const result = list.filter((item) =>
+                item.toLowerCase().includes(query.toLowerCase())
+            );
+            process(result);
+        },
+    })),
+    cells: function (row, col) {
+        return { renderer: colorCellRenderer };
+    },
+    afterChange: function (changes, source) {
+        if (source === "loadData" || !changes) return;
 
-    if (coloredRowObj) {
-        td.style.backgroundColor = coloredRowObj.color_row;
-        td.style.fontWeight = "medium";
-        td.style.color = "black";
-    }
-}
+        changes.forEach(([row, prop, oldVal, newVal]) => {
+            if (newVal && typeof newVal === "string") {
+                suggestionHistory.add(newVal.trim());
+            }
+        });
 
-hot.updateSettings({
-    columns: header.map((col, colIndex) => {
-        let colorObj = colored.find((c) => c.header === col);
+        const jsonData = JSON.stringify({
+            data: this.getSourceData(),
+            colheaders: this.getColHeader(),
+        });
 
-        if (colorObj) {
-            return {
-                renderer: colorHeadRenderer,
-            };
-        }
-        return {};
-    }),
-    cells: function (row, col, prop) {
-        const cellProperties = {};
-        const coloredRowObj = coloredRow.find((obj) => obj.index_row === row);
-        if (coloredRowObj) {
-            cellProperties.renderer = colorRowRenderer;
-        }
-        return cellProperties;
+        // Bisa pakai vanilla JS agar konsisten
+        const hiddenInput = document.getElementById("handsontable-data");
+        if (hiddenInput) hiddenInput.value = jsonData;
+
+        console.log("Updated hidden input:", jsonData);
     },
 });
+
+// Set nilai awal hidden input supaya tidak kosong saat submit form pertama kali
+const hiddenInput = document.getElementById("handsontable-data");
+if (hiddenInput) {
+    hiddenInput.value = JSON.stringify({
+        data: data,
+        colheaders: header,
+    });
+}
+
+// Search plugin
+const searchPlugin = hot.getPlugin("search");
+const searchInput = document.getElementById("searchInput");
+if (searchInput) {
+    searchInput.addEventListener("keyup", function () {
+        searchPlugin.query(this.value);
+        hot.render();
+    });
+}

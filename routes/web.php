@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\UsersController;
+use App\Models\ColoringDataCol;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +24,8 @@ Route::get('/', function () {
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $coloringDataCol = ColoringDataCol::all();
+        return view('dashboard', ['coloringDataCol' => $coloringDataCol]);
     })->name('dashboard');
     Route::get('/datas/check', [DataController::class, 'check'])->name('datas-check');
     Route::post('/datas/update-col', [DataController::class, 'update_col'])->name('datas-update-col');

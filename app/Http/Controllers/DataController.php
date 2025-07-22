@@ -43,6 +43,8 @@ class DataController extends Controller
     {
         $handsontableData = json_decode($request->input('handsontable_data'), true);
 
+        dd($handsontableData);
+
         $data = $request->all();
 
         $data['header_table'] = $handsontableData['colheaders'];
@@ -91,45 +93,52 @@ class DataController extends Controller
     public function update_col(Request $request, Datas $datas)
     {
         $data = $request->all();
+        $headerRaw = $data['cell'];  // ex: "TEST A,0,1"
+        [$headerName, $rowIndex] = explode(',', $headerRaw);
 
-        ColoringDataCol::create([
-            'data_details_id' => $data['data_details_id'],
-            'user_id' => $data['user_id'],
-            'header' => $data['header'],
-            'color_col' => $data['color_col'],
-        ]);
+        if ($data['radio'] != 'notProcess') {
 
-        $head = $data['header'];
+            $coloring = $data['radio'] == 'success' ? '#422ad5' : '#00d390';
 
-        return redirect()
-            ->route('datas.edit', $data['datas_id'])
-            ->with('Success', "Warna Kolom $head telah ditambkan");
+            ColoringDataCol::create([
+                'data_details_id' => $data['data_details_id'],
+                'user_id' => $data['user_id'],
+                'header' => $headerName,
+                'column' => $rowIndex,
+                'color_col' => $coloring,
+            ]);
+
+            $head = $headerName;
+
+            return redirect()
+                ->route('datas.edit', $data['datas_id'])
+                ->with('Success', "Warna Kolom $head telah ditambahkan");
+        } else {
+            $dataCol = ColoringDataCol::where('header', $headerName)->where('column', $rowIndex)->first();
+
+            if ($dataCol)  $dataCol->delete();
+
+            $head = $headerName;
+
+            return redirect()
+                ->route('datas.edit', $data['datas_id'])
+                ->with('Success', "Warna Kolom $head telah dihapus");
+        }
     }
-    public function update_row(Request $request, Datas $datas)
-    {
-        $data = $request->all();
 
-        ColoringDataRow::create([
-            'data_details_id' => $data['data_details_id'],
-            'user_id' => $data['user_id'],
-            'index_row' => $data['index_row'],
-            'color_row' => $data['color_row'],
-        ]);
-
-        $indx = $data['index_row'] + 1;
-
-        return redirect()
-            ->route('datas.edit', $data['datas_id'])
-            ->with('Success', "Warna pada baris $indx telah ditambkan !");
-    }
     public function update(Request $request, Datas $datas, $id)
     {
         $handsontableData = json_decode($request->input('handsontable_data'), true);
         $data = $request->all();
         $item = Datas::findOrFail($id);
 
+
         Datas::where('id', $id)->update(['nama_data' => $data['nama_data'], 'category_id' => $data['category_id']]);
-        DataDetails::where('datas_id', $id)->update(['header_table' => $handsontableData['colheaders'], 'value_table' => $handsontableData['data']]);
+        DataDetails::where('datas_id', $id)->update([
+            'header_table' => json_encode($handsontableData['colheaders']),
+            'value_table' => json_encode($handsontableData['data']),
+        ]);
+
 
         return redirect()->route('datas.index')->with('Success', 'Data Berhasil Di Edit !!');
     }

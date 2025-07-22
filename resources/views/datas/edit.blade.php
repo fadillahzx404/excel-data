@@ -2,7 +2,25 @@
 @section('title')
     Edit Data
 @endsection
+
+
 @section('page-content')
+    <style>
+        input[type="radio"].radio-neutral:checked {
+            background-color: #9ca3af;
+            /* abu-abu */
+            border-color: #9ca3af;
+            color: #9ca3af;
+        }
+
+        input[type="radio"].radio-neutral:checked:hover,
+        input[type="radio"].radio-neutral:checked:focus {
+            background-color: #6b7280;
+            /* abu-abu lebih gelap */
+            border-color: #6b7280;
+            color: #6b7280;
+        }
+    </style>
     <div class="flash-data" data-flash="{!! \Session::get('Success') !!}"></div>
     <div class="container px-12 pb-36 pt-12 lg:mt-8 max-lg:px-10 max-sm:px-5 mx-auto min-h-screen">
 
@@ -42,7 +60,7 @@
 
                         </label>
                     </div>
-                    @if (!empty($data->dataDetails->ColoringCol) && !empty($data->dataDetails->ColoringRow))
+                    @if (!empty($data->dataDetails->ColoringCol))
                         <div class="form-control title-table">
                             <label class="label grid">
                                 <span class="text-lg font-medium">Keterangan.</span>
@@ -52,17 +70,13 @@
                                     <p class="pl-2"><b
                                             class="uppercase">{{ $item->userProfile->name == Auth::user()->name ? 'ANDA' : $item->userProfile->name }}</b>
                                         ({{ $item->userProfile->roles }})
-                                        Telah Mengubah Warna Kolom <b>{{ $item->header }}</b>.</p>
+                                        Telah Mengubah Warna Kolom <b>{{ $item->header }}</b> Baris
+                                        <b>{{ $item->column }}</b>.
+                                    </p>
                                 @endforeach
 
-                                <p class="py-2 text-md">Baris Terakhir Di Ubah Oleh:</p>
 
-                                @foreach ($data->dataDetails->ColoringRow->take(3) as $item)
-                                    <p class="pl-2"><b
-                                            class="uppercase">{{ $item->userProfile->name == Auth::user()->name ? 'ANDA' : $item->userProfile->name }}</b>
-                                        ({{ $item->userProfile->roles }})
-                                        Telah Mengubah Warna Baris <b>{{ $item->index_row + 1 }}</b>.</p>
-                                @endforeach
+
                             </label>
                         </div>
                     @endif
@@ -83,23 +97,22 @@
                                 @endif
                             @endif
 
-                            @if ($data->dataDetails->ColoringRow->where('user_id', Auth::user()->id)->isEmpty())
+                            {{-- @if ($data->dataDetails->ColoringRow->where('user_id', Auth::user()->id)->isEmpty())
                                 <label for="my_modal_3" class="btn btn-sm btn-neutral">Ubah Warna Baris</label>
                             @else
                                 <label for="my_modal_4" class="btn btn-sm btn-error">Hapus Warna Baris</label>
-                            @endif
+                            @endif --}}
                         @elseif (Auth::user()->roles == 'ADMIN')
-                            <label for="my_modal_1" class="btn btn-sm btn-neutral">Ubah Warna Kolom</label>
+                            <label for="my_modal_1" class="btn  btn-neutral">Ubah Warna</label>
 
-                            <label for="my_modal_5" class="btn btn-sm btn-error">Hapus Warna Kolom</label>
-
-
-                            <label for="my_modal_3" class="btn btn-sm btn-neutral">Ubah Warna Baris</label>
-
-                            <label for="my_modal_6" class="btn btn-sm btn-error">Hapus Warna Baris</label>
+                            <div class="form-control w-72 ">
+                                <input type="text" id="searchInput" placeholder="Cari dalam tabel..."
+                                    class="input input-bordered w-full" />
+                            </div>
                         @endif
 
                     </div>
+
 
 
 
@@ -128,31 +141,49 @@
 
         <div class="modal" role="dialog">
             <div class="modal-box">
-                <h3 class="font-bold text-lg">Pilih Kolom dan Pilih Warna!</h3>
+                <h3 class="font-bold text-lg">Pilih Aksi!</h3>
                 <form action="{{ route('datas-update-col') }}" method="POST">
                     @csrf
 
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="form-control w-full col-span-2">
+                    <div class="grid gap-4 pb-4">
+                        <label class="form-control w-full ">
                             <div class="label">
-                                <span class="label-text">Pilih Kolom</span>
+                                <span class="label-text">Pilih Kolom dan Baris</span>
 
                             </div>
-                            <select class="select select-bordered" name="header">
-                                @foreach (json_decode($data->dataDetails->header_table) as $head)
-                                    <option value="{{ $head }}">{{ $head }}</option>
+                            <select class="select select-bordered" name="cell">
+                                @php
+                                    $headers = json_decode($data->dataDetails->header_table);
+                                    $rows = count(json_decode($data->dataDetails->value_table));
+                                @endphp
+
+                                @foreach ($headers as $colIndex => $header)
+                                    @for ($rowIndex = 1; $rowIndex <= $rows; $rowIndex++)
+                                        <option value="{{ $header }},{{ $rowIndex }}">
+                                            {{ $header }} - {{ $rowIndex }}</option>
+                                    @endfor
                                 @endforeach
                             </select>
 
-                        </label>
-                        <label class="form-control w-full">
-                            <div class="label">
-                                <span class="label-text">Pilih Warna</span>
 
+                        </label>
+                        <div class="flex justify-between px-3">
+                            <div class="flex justify-center gap-2">
+                                <input type="radio" name="radio" value="success" class="radio radio-primary" />
+                                <span>Success</span>
                             </div>
-                            <input type="color" class="input input-bordered w-full" name="color_col" />
+                            <div class="flex justify-center gap-2">
+                                <input type="radio" name="radio" value="process" class="radio radio-success" />
+                                <span>Process</span>
+                            </div>
+                            <div class="flex justify-center gap-2">
+                                <input type="radio" name="radio" value="notProcess" class="radio radio-neutral" />
+                                <span>Not-Process</span>
+                            </div>
 
-                        </label>
+
+                        </div>
+
                         <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
                         <input type="hidden" name="data_details_id" value="{{ $data->dataDetails->id }}">
                         <input type="hidden" name="datas_id" value="{{ $data->id }}">
@@ -165,185 +196,6 @@
             </div>
         </div>
 
-        <!-- Modal 2 -->
-        @if ($data->dataDetails->ColoringCol->where('user_id', Auth::user()->id)->isEmpty())
-        @else
-            <input type="checkbox" id="my_modal_2" class="modal-toggle" />
-
-            <div class="modal" role="dialog">
-                <div class="modal-box">
-
-
-                    <h3 class="font-bold text-lg">Apakah anda yakin!</h3>
-                    <p class="py-4">Yakin ingin menghapus warna kolom yang telah anda berikan?</p>
-                    <div class="modal-action">
-                        <label for="my_modal_2" class="btn btn-sm btn-warning">Kembali</label>
-                        <?php
-                        foreach ($data->dataDetails->ColoringCol->where('user_id') as $userCol) {
-                            $idCol = $userCol->id;
-                        }
-                        ?>
-
-                        <form action="{{ route('datas-delete-col', ['id' => $idCol, 'datas_id' => $data->id]) }}"
-                            method="POST">
-                            @csrf
-                            @method('DELETE')
-
-                            <button type="submit" class="btn btn-sm btn-error">Ya, Hapus !</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- Modal 3 -->
-
-        <input type="checkbox" id="my_modal_3" class="modal-toggle" />
-
-        <div class="modal" role="dialog">
-            <div class="modal-box">
-                <h3 class="font-bold text-lg">Pilih Baris dan Pilih Warna!</h3>
-                <form action="{{ route('datas-update-row') }}" method="POST">
-                    @csrf
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="form-control w-full col-span-2">
-                            <div class="label">
-                                <span class="label-text">Pilih Baris</span>
-
-                            </div>
-
-                            <select class="select select-bordered" id="indexSelected" name="index_row">
-                                @for ($i = 0; $i < count(json_decode($data->dataDetails->value_table)); $i++)
-                                    <option value="{{ $i }}">{{ $i + 1 }}</option>
-                                @endfor
-                            </select>
-
-                            <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
-                            <input type="hidden" name="data_details_id" value="{{ $data->dataDetails->id }}">
-                            <input type="hidden" name="datas_id" value="{{ $data->id }}">
-
-
-                        </label>
-                        <label class="form-control w-full">
-                            <div class="label">
-                                <span class="label-text">Pilih Warna</span>
-
-                            </div>
-                            <input type="color" class="input input-bordered w-full" name="color_row" />
-
-                        </label>
-                    </div>
-                    <div class="modal-action">
-                        <label for="my_modal_3" class="btn btn-sm btn-warning">Cancel</label>
-                        <button type="submit" class="btn btn-sm btn-success">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        @if ($data->dataDetails->ColoringRow->where('user_id', Auth::user()->id)->isEmpty())
-        @else
-            <!-- Modal 4 -->
-
-            <input type="checkbox" id="my_modal_4" class="modal-toggle" />
-
-            <div class="modal" role="dialog">
-                <div class="modal-box">
-
-
-                    <h3 class="font-bold text-lg">Apakah anda yakin!</h3>
-                    <p class="py-4">Yakin ingin menghapus warna baris yang telah anda berikan?</p>
-                    <div class="modal-action">
-                        <label for="my_modal_4" class="btn btn-sm btn-warning">Kembali</label>
-                        @php
-                            foreach ($data->dataDetails->ColoringRow->where('user_id') as $userRow) {
-                                $idRow = $userRow->id;
-                            }
-                        @endphp
-
-
-                        <form action="{{ route('datas-delete-row', ['id' => $idRow, 'datas_id' => $data->id]) }}"
-                            method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-error">Ya, Hapus !</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-
-        @if ($data->dataDetails->ColoringCol->isEmpty())
-        @else
-            <!-- Modal 5 -->
-            <input type="checkbox" id="my_modal_5" class="modal-toggle" />
-
-            <div class="modal" role="dialog">
-                <div class="modal-box">
-                    <h3 class="font-bold text-lg">Hapus Kolom!</h3>
-                    <form action="{{ route('datas-delete-col', ['datas_id' => $data->id]) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <p class="pt-4">Pilih kolom yang anda ingin hapus warnanya?</p>
-                        <label class="form-control w-full">
-                            <div class="label">
-                                <span class="label-text">Pilih Kolom</span>
-
-                            </div>
-                            <select class="select select-bordered" name="id">
-                                @foreach ($data->dataDetails->ColoringCol as $head)
-                                    <option value="{{ $head->id }}">{{ $head->header }}</option>
-                                @endforeach
-                            </select>
-
-                        </label>
-                        <div class="modal-action">
-                            <label for="my_modal_5" class="btn btn-sm btn-warning">Kembali</label>
-
-                            <button type="submit" class="btn btn-sm btn-error">Ya, Hapus !</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        @endif
-
-        @if ($data->dataDetails->coloringRow->isEmpty())
-        @else
-            <!-- Modal 6 -->
-            <input type="checkbox" id="my_modal_6" class="modal-toggle" />
-
-            <div class="modal" role="dialog">
-                <div class="modal-box">
-                    <h3 class="font-bold text-lg">Hapus Kolom!</h3>
-                    <form action="{{ route('datas-delete-row', ['datas_id' => $data->id]) }}" method="POST">
-                        @csrf
-                        @method('DELETE')
-                        <p class="pt-4">Pilih baris yang anda ingin hapus warnanya?</p>
-                        <label class="form-control w-full">
-                            <div class="label">
-                                <span class="label-text">Pilih Baris</span>
-
-                            </div>
-
-
-                            <select class="select select-bordered" name="id">
-                                @foreach ($data->dataDetails->ColoringRow->sortBy('index_row') as $keey)
-                                    <option value="{{ $keey->id }}">{{ $keey->index_row + 1 }}</option>
-                                @endforeach
-
-                            </select>
-
-                        </label>
-                        <div class="modal-action">
-                            <label for="my_modal_6" class="btn btn-sm btn-warning">Kembali</label>
-
-                            <button type="submit" class="btn btn-sm btn-error">Ya, Hapus !</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        @endif
 
 
     </div>
@@ -364,8 +216,8 @@
         window.ColoringColumn = {
             coloringCol: <?php echo json_encode($data->dataDetails->ColoringCol); ?>
         }
-        window.ColoringRowing = {
-            coloringRow: <?php echo json_encode($data->dataDetails->ColoringRow); ?>
-        }
+        // window.ColumnIndex = {
+        //     columnIndex: <?php echo json_encode($data->dataDetails->ColoringRow); ?>
+        // }
     </script>
 @endpush

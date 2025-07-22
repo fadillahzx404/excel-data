@@ -11,9 +11,10 @@ const nameHeader = window.Laravel.nameHeader;
 const headerName = nameHeader.nama_header;
 const jumlahKolom = nameHeader.jumlah_baris;
 
-console.log(nameHeader);
-
 const count = headerName.length;
+
+const suggestionHistory = new Set(); // simpan nilai-nilai yang pernah diketik
+
 const hot = new Handsontable(container, {
     startCols: count,
     startRows: jumlahKolom,
@@ -28,16 +29,34 @@ const hot = new Handsontable(container, {
     contextMenu: ["row_above", "row_below", "remove_row"],
     stretchH: "all",
     licenseKey: "non-commercial-and-evaluation",
-    afterChange: function (source, changes) {
-        let jsonData;
 
-        jsonData = JSON.stringify({
+    columns: headerName.map(() => ({
+        type: "autocomplete",
+        strict: false,
+        filter: true,
+        source: function (query, process) {
+            const list = Array.from(suggestionHistory);
+            if (!query) return process(list);
+            const result = list.filter((item) =>
+                item.toLowerCase().includes(query.toLowerCase())
+            );
+            process(result);
+        },
+    })),
+    afterChange: function (changes, source) {
+        if (source === "edit" || source === "Autofill.fill") {
+            changes.forEach(([row, col, oldVal, newVal]) => {
+                if (newVal) {
+                    suggestionHistory.add(newVal);
+                }
+            });
+        }
+
+        const jsonData = JSON.stringify({
             data: this.getSourceData(),
             colheaders: this.getColHeader(),
             rowheaders: this.getRowHeader(),
         });
-
-        // update the hidden form field with the new data
 
         $("#handsontable-data").val(jsonData);
     },
