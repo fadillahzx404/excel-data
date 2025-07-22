@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DataController;
 use App\Http\Controllers\UsersController;
-use App\Models\ColoringDataCol;
+use App\Models\Datas;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +23,40 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+
     Route::get('/dashboard', function () {
-        $coloringDataCol = ColoringDataCol::all();
-        return view('dashboard', ['coloringDataCol' => $coloringDataCol]);
+        $datasList = Datas::with('dataDetails.coloringCol')->get();
+
+        $coloringCollection = collect();
+
+        $totalCells = 0;
+
+        foreach ($datasList as $datas) {
+            $headers = json_decode($datas->dataDetails->header_table ?? '[]');
+            $values = json_decode($datas->dataDetails->value_table ?? '[]');
+
+            $totalRows = count($values);
+            $totalCols = count($headers);
+            $totalCells += $totalRows * $totalCols;
+
+            // Gabungkan semua coloringCol ke satu koleksi
+            $coloringCollection = $coloringCollection->merge($datas->dataDetails->coloringCol);
+        }
+
+        $processCount = $coloringCollection->where('color_col', '#00d390')->count();
+        $successCount = $coloringCollection->where('color_col', '!=', '#00d390')->count();
+        $totalColored = $coloringCollection->count();
+
+        $uncoloredCount = $totalCells - $totalColored;
+
+        return view('dashboard', compact(
+            'processCount',
+            'successCount',
+            'totalColored',
+            'uncoloredCount'
+        ));
     })->name('dashboard');
+
     Route::get('/datas/check', [DataController::class, 'check'])->name('datas-check');
     Route::post('/datas/update-col', [DataController::class, 'update_col'])->name('datas-update-col');
     Route::post('/datas/update-row', [DataController::class, 'update_row'])->name('datas-update-row');
